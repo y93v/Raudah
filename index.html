@@ -1,323 +1,492 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pour Toi, Meli</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            /* New, lightweight static background */
-            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-            overflow: hidden;
-            color: #e0e0e0;
-            height: 100vh;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aku Cinta Kamu ❤️</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle, #2c001e, #1a0012, #050505);
+      height: 100%;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      /* Prevents blue highlight on tap on mobile */
+      -webkit-tap-highlight-color: transparent;
+      user-select: none; /* Prevents text selection on mobile */
+    }
+      
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
 
-        /* Lightweight Starfield */
-        @keyframes subtle-flicker {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-        #star-field {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-        }
-        .stars {
-            width: 1px; height: 1px;
-            background: transparent;
-            box-shadow: 
-                -37vw 18vh #FFF, 8vw 68vh #FFF, -45vw 10vh #FFF, 2vw 74vh #FFF, 2vw 82vh #FFF, 
-                34vw 6vh #FFF, 33vw 87vh #FFF, 49vw 10vh #FFF, 3vw 86vh #FFF, -3vw 77vh #FFF,
-                -21vw 23vh #FFF, -12vw 63vh #FFF, -24vw 80vh #FFF, 4vw 94vh #FFF, 15vw 93vh #FFF,
-                -40vw 88vh #FFF, 23vw 5vh #FFF, 10vw 10vh #FFF, -15vw 55vh #FFF, 45vw 22vh #FFF,
-                -27vw 48vh #FFF, 18vw 34vh #FFF, -35vw 60vh #FFF, 42vw 12vh #FFF, -48vw 30vh #FFF;
-            animation: subtle-flicker 4s infinite alternate;
-        }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
 
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(12, 10, 24, 0.7);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 40; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.4s ease-in-out; pointer-events: none;
+    .center-message {
+      color: #ff85c1;
+      font-size: clamp(3rem, 12vw, 7rem); /* Adjusted for better scaling */
+      text-align: center;
+      opacity: 0;
+      text-shadow: 
+        0 0 5px #ff69b4,
+        0 0 10px #ff69b4,
+        0 0 20px #ff1493,
+        0 0 40px #ff1493,
+        0 0 60px #ff1493;
+      animation: fadeIn 2s ease-in-out 1s forwards, float 8s ease-in-out 3s infinite;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes float {
+      0%   { transform: scale(1) translateY(0px); }
+      50%  { transform: scale(1.05) translateY(-20px); }
+      100% { transform: scale(1) translateY(0px); }
+    }
+
+    @keyframes border-glow {
+      0%   { border-color: #ff1493; box-shadow: 0 0 50px rgba(255, 20, 147, 0.6); }
+      50%  { border-color: #ff85c1; box-shadow: 0 0 70px rgba(255, 133, 193, 0.8); }
+      100% { border-color: #ff1493; box-shadow: 0 0 50px rgba(255, 20, 147, 0.6); }
+    }
+    
+    .action-button-container {
+      position: absolute;
+      bottom: 30px;
+      z-index: 20;
+    }
+    #start-game-container {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #message-button-container {
+      right: 30px;
+    }
+    
+    .game-button {
+      background: rgba(255, 105, 180, 0.1);
+      border: 2px solid #ff69b4;
+      color: #ffc0cb;
+      padding: 15px 30px;
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.2), inset 0 0 10px rgba(255, 105, 180, 0.2);
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    .game-button:hover {
+      background: rgba(255, 105, 180, 0.3);
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.7), inset 0 0 15px rgba(255, 105, 180, 0.4);
+      color: white;
+      transform: translateY(-3px) scale(1.05);
+    }
+    #showMessageBtn {
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    .modal {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100; display: none; align-items: center;
+      justify-content: center; padding: 15px; opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .modal.show { display: flex; opacity: 1; }
+
+    .modal-content {
+      background: rgba(26, 2, 13, 0.6);
+      backdrop-filter: blur(10px);
+      border: 2px solid #ff1493;
+      border-radius: 30px; 
+      padding: 30px 40px; width: 100%; max-width: 500px;
+      text-align: center; color: #ffc0cb;
+      position: relative; transform: scale(0.9);
+      transition: transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      animation: border-glow 4s ease-in-out infinite;
+      box-sizing: border-box;
+    }
+    .modal.show .modal-content { transform: scale(1); }
+    
+    #game-question {
+      font-size: clamp(20px, 4vw, 24px);
+      text-shadow: 0 0 10px #ff1493;
+      margin-bottom: 40px; min-height: 50px; line-height: 1.4;
+    }
+    #special-message {
+        font-size: clamp(16px, 3vw, 18px);
+        text-align: left;
+        line-height: 1.8;
+        text-shadow: 0 0 5px #ff69b4;
+    }
+    
+    .game-buttons {
+      position: relative; display: flex;
+      justify-content: center; gap: 20px;
+      height: 50px; align-items: center;
+    }
+    
+    #yesBtn {
+      position: absolute;
+      transition: top 0.2s ease, left 0.2s ease, transform 0.3s ease;
+    }
+    
+    #win-message {
+      font-size: clamp(22px, 5vw, 28px);
+      font-weight: bold;
+      line-height: 1.6; margin: 20px 0;
+      text-shadow: 0 0 10px #ff69b4;
+    }
+    
+    .modal-close {
+      position: absolute; top: 10px; right: 20px;
+      font-size: 35px; font-weight: bold;
+      color: #ff69b4; cursor: pointer;
+      transition: transform 0.2s, color 0.2s;
+    }
+    .modal-close:hover {
+      transform: scale(1.2) rotate(90deg); color: white;
+    }
+
+    /* --- Mobile Responsiveness --- */
+    @media (max-width: 600px) {
+        .action-button-container {
+            bottom: 20px;
         }
-        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+        #message-button-container {
+            right: 20px;
+        }
+        .game-button {
+            padding: 12px 25px;
+            font-size: 16px;
+        }
+        #showMessageBtn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
         .modal-content {
-            background: rgba(25, 23, 46, 0.9);
-            padding: 2rem 1.5rem;
-            border-radius: 1.5rem;
-            border: 1px solid rgba(236, 72, 153, 0.4);
-            width: 90%; max-width: 550px; position: relative;
-            box-shadow: 0 0 50px rgba(236, 72, 153, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
-            transform: translateY(20px) scale(0.95); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 25px;
+            width: 95%;
         }
-        .modal-overlay.visible .modal-content { transform: translateY(0) scale(1); }
-        .modal-close-btn {
-            position: absolute; top: 15px; right: 15px;
-            cursor: pointer; transition: all 0.3s ease; z-index: 10;
-            font-size: 1.5rem; color: #ec4899;
+        #game-question {
+            font-size: 18px;
         }
-        .modal-close-btn:hover { transform: scale(1.2) rotate(90deg); color: #fff;}
-        
-        .font-dancing { font-family: 'Dancing Script', cursive; }
-        .text-glow {
-             color: #f9a8d4;
-             text-shadow: 0 0 7px #f9a8d4, 0 0 12px #ec4899, 0 0 25px #ec4899;
+        #special-message {
+            font-size: 15px;
+            line-height: 1.7;
         }
+    }
 
-        /* Main Screen Elements */
-        .main-title {
-            font-family: 'Dancing Script', cursive;
-            font-size: clamp(3rem, 10vw, 6rem);
-        }
-        .subtitle {
-            font-size: clamp(1rem, 4vw, 1.5rem);
-            color: #c4b5fd; /* Lavender color */
-        }
-        .main-heart {
-            font-size: clamp(2rem, 8vw, 4rem);
-            color: #ec4899;
-            text-shadow: 0 0 10px #ec4899, 0 0 20px #ec4899, 0 0 40px #ec4899, 0 0 80px #ec4899;
-            animation: heart-pulse 2s infinite ease-in-out;
-        }
-        
-        @keyframes heart-pulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px #ec4899); }
-            50% { transform: scale(1.1); filter: drop-shadow(0 0 30px #ec4899); }
-        }
-
-        .action-button {
-            padding: 1rem 2rem;
-            border: 2px solid #ec4899;
-            border-radius: 12px;
-            background: transparent;
-            color: #ec4899;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.3);
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 500;
-        }
-        .action-button:hover {
-            background: #ec4899;
-            color: #fff;
-            box-shadow: 0 0 25px #ec4899, 0 0 50px #ec4899;
-            transform: scale(1.05);
-        }
-
-        /* Message List inside Modal */
-        .message-title-btn {
-            display: block; width: 100%; text-align: left;
-            padding: 0.8rem 1.2rem;
-            margin-bottom: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.3s;
-            color: #f9a8d4;
-            border: 1px solid rgba(236, 72, 153, 0.2);
-            background-color: rgba(236, 72, 153, 0.1);
-            font-size: 1.1rem;
-        }
-        .message-title-btn:hover {
-            background-color: rgba(236, 72, 153, 0.25);
-            color: #fff;
-            border-color: rgba(236, 72, 153, 0.5);
-            transform: translateX(5px);
-        }
-
-        /* Custom Scrollbar */
-        #modal-body::-webkit-scrollbar { width: 8px; }
-        #modal-body::-webkit-scrollbar-track { background: #19172e; border-radius: 10px; }
-        #modal-body::-webkit-scrollbar-thumb { background-color: #ec4899; border-radius: 10px; border: 2px solid #19172e; }
-    </style>
+  </style>
 </head>
 <body>
-    <div id="star-field">
-        <div class="stars"></div>
-    </div>
 
-    <div id="initial-modal" class="modal-overlay">
-        <div class="modal-content">
-            <i id="initial-modal-close" class="fas fa-times modal-close-btn"></i>
-            <div class="text-center">
-                 <h2 class="font-dancing text-glow text-3xl mb-4">Bienvenue, mon étoile ✨</h2>
-                 <p class="text-lg leading-relaxed">
-                    J'ai créé ce petit univers juste pour toi, un endroit où tu pourras toujours trouver un morceau de mon cœur. 💖
-                    <br/><br/>
-                    Ceci n'est qu'un simple écho de l'amour infini que je te porte. Chaque mot est une promesse, un rappel que tu es tout pour moi, aujourd'hui et pour l'éternité. ♾️
-                 </p>
-            </div>
-        </div>
+<audio id="bgMusic" loop playsinline>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f0817cc1aa.mp3?filename=romantic-love-112195.mp3" type="audio/mp3">
+  Your browser does not support the audio element.
+</audio>
+
+<canvas id="main-canvas"></canvas>
+
+<div class="overlay">
+  <div class="center-message">Aku Cinta Kamu ❤️</div>
+</div>
+
+<div class="action-button-container" id="start-game-container">
+    <button id="startGameBtn" class="game-button">Click to Play</button>
+</div>
+<div class="action-button-container" id="message-button-container">
+    <button id="showMessageBtn" class="game-button">!</button>
+</div>
+
+<!-- Game Modal -->
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+         <span class="modal-close" id="closeGameModal">&times;</span>
+         <h2 id="game-question">Do you love me more than I love you?</h2>
+         <div class="game-buttons">
+            <button id="yesBtn" class="game-button">Yes</button>
+            <button id="noBtn" class="game-button">No</button>
+         </div>
     </div>
+</div>
+
+<!-- Win Modal -->
+<div id="winModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="closeWinModal">&times;</span>
+        <p id="win-message">Of course, I always win ✨👹<br>hehehe</p>
+    </div>
+</div>
+
+<!-- Special Message Modal -->
+<div id="specialMessageModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="closeSpecialMessageModal">&times;</span>
+        <p id="special-message">
+            Hey, Rawdah…
+            <br><br>
+            I just want you to be really clear about this.
+            I’m here for you no matter what happens... not to confuse you or pressure you, just to be here. &lt;3
+            <br><br>
+            I know this time feels hard and confusing, and it’s okay to protect your heart. I get that, and I respect it deeply. &lt;3
+            <br><br>
+            I don’t have all the answers yet, but I do care, I’m honest, and I truly want you to feel safe and at peace. You don’t have to rush anything, and you’re not alone. &lt;3
+            <br><br>
+            I’m right here with you… calmly and honestly. 🌠✨
+        </p>
+    </div>
+</div>
+
+<script>
+  // Canvas Setup
+  const mainCanvas = document.getElementById("main-canvas");
+  const ctx = mainCanvas.getContext("2d");
+  const bgMusic = document.getElementById("bgMusic");
+  let musicStarted = false;
+
+  let width = mainCanvas.width = window.innerWidth;
+  let height = mainCanvas.height = window.innerHeight;
+
+  // --- Matrix Rain background ---
+  const fontSize = 16;
+  let columns = Math.ceil(width / fontSize);
+  let drops = [];
+  for(let i = 0; i < columns; i++) {
+    drops[i] = 1;
+  }
+  
+  let time = 0;
+  const baseHue = 300; 
+  const hueRange = 30;
+  
+  const fireworks = [];
+
+  function createExplosion(x, y) {
+      const particleCount = 20;
+      const currentHue = baseHue + Math.sin(time) * hueRange; 
+      for (let i = 0; i < particleCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 4 + 1;
+          fireworks.push({
+              x, y,
+              dx: Math.cos(angle) * speed,
+              dy: Math.sin(angle) * speed,
+              text: "Raudah",
+              size: 12 + Math.random() * 8,
+              alpha: 1,
+              gravity: 0.08,
+              color: `hsl(${currentHue}, 100%, 75%)`
+          });
+      }
+  }
+
+  function drawFireworks() {
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+          const p = fireworks[i];
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.font = `${p.size}px monospace`;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 10;
+          ctx.fillText(p.text, p.x, p.y);
+          p.x += p.dx;
+          p.y += p.dy;
+          p.dy += p.gravity;
+          p.alpha -= 0.02;
+          if (p.alpha <= 0) fireworks.splice(i, 1);
+      }
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+  }
+  
+  // Main Animation Loop
+  function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    ctx.fillRect(0, 0, width, height);
+
+    time += 0.01;
+    const newHue = baseHue + Math.sin(time) * hueRange;
+    const newColor = `hsl(${newHue}, 100%, 70%)`;
     
-    <div id="messages-modal" class="modal-overlay">
-        <div class="modal-content">
-             <i id="messages-modal-close" class="fas fa-times modal-close-btn"></i>
-             <div id="modal-body" class="max-h-[70vh] overflow-y-auto pr-3">
-                <!-- Content will be injected here -->
-             </div>
-        </div>
-    </div>
+    ctx.font = `${fontSize}px monospace`;
+    ctx.fillStyle = newColor;
+    ctx.shadowColor = newColor;
+    ctx.shadowBlur = 10;
+    
+    for (let i = 0; i < drops.length; i++) {
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillText("Raudah", x, y);
 
-    <main class="container mx-auto p-4 sm:p-8 flex flex-col items-center justify-center min-h-screen relative z-10 text-center">
-        <div class="flex flex-col items-center justify-center gap-2 mb-12">
-            <h1 class="main-title text-glow">Notre Ciel Étoilé</h1>
-            <p class="subtitle text-glow">Pour Toi, Meli 💖</p>
-            <i class="fas fa-heart main-heart mt-4"></i>
-        </div>
+        if (y > height && Math.random() > 0.975) {
+            drops[i] = 0;
+        }
+        drops[i]++;
+    }
+    
+    ctx.shadowBlur = 0;
+    
+    drawFireworks();
+
+    requestAnimationFrame(animate);
+  }
+
+  // --- General Setup & Event Listeners ---
+  function startMusic() {
+    if (!musicStarted) {
+      bgMusic.play().catch(e => console.error("Audio playback failed.", e));
+      musicStarted = true;
+    }
+  }
+  
+  function handleInteraction(e) {
+      if (!e.target.closest('.modal-content') && !e.target.classList.contains('game-button')) {
+        let x, y;
+        if(e.touches && e.touches.length > 0) {
+            x = e.touches[0].clientX;
+            y = e.touches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+        createExplosion(x, y);
+    }
+    startMusic();
+  }
+
+  document.body.addEventListener("click", handleInteraction);
+  document.body.addEventListener("touchstart", handleInteraction);
+
+  
+  window.addEventListener('resize', () => {
+    width = mainCanvas.width = window.innerWidth;
+    height = mainCanvas.height = window.innerHeight;
+    columns = Math.ceil(width / fontSize);
+    drops = [];
+    for(let i = 0; i < columns; i++) {
+        drops[i] = 1;
+    }
+  });
+
+  // --- Game and Modals Logic ---
+  const startGameBtn = document.getElementById('startGameBtn');
+  const showMessageBtn = document.getElementById('showMessageBtn');
+  
+  const gameModal = document.getElementById('gameModal');
+  const winModal = document.getElementById('winModal');
+  const specialMessageModal = document.getElementById('specialMessageModal');
+  
+  const closeGameModalBtn = document.getElementById('closeGameModal');
+  const closeWinModalBtn = document.getElementById('closeWinModal');
+  const closeSpecialMessageModalBtn = document.getElementById('closeSpecialMessageModal');
+  
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  
+  let yesButtonEscapes = 0;
+  const maxEscapes = 5;
+  let isYesBtnOnLeft = true; 
+
+  startGameBtn.addEventListener('click', () => {
+      gameModal.classList.add('show');
+      yesButtonEscapes = 0;
+      yesBtn.style.display = 'inline-block';
+      yesBtn.style.position = 'relative';
+      yesBtn.style.top = 'auto';
+      yesBtn.style.left = 'auto';
+      isYesBtnOnLeft = true; 
+  });
+  
+  showMessageBtn.addEventListener('click', () => {
+    specialMessageModal.classList.add('show');
+  });
+  
+  noBtn.addEventListener('click', () => {
+    gameModal.classList.remove('show');
+    winModal.classList.add('show');
+  });
+
+  yesBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    yesButtonEscapes++;
+    if (yesButtonEscapes >= maxEscapes) {
+        yesBtn.style.display = 'none';
+        return;
+    }
+    yesBtn.style.position = 'absolute';
+    const container = yesBtn.parentElement;
+    const noBtnEl = document.getElementById('noBtn');
+
+    let newLeft, newTop;
+    let attempts = 0;
+
+    do {
+        const containerWidth = container.offsetWidth;
+        const buttonWidth = yesBtn.offsetWidth;
+        const buttonHeight = yesBtn.offsetHeight;
         
-        <button id="open-messages-btn" class="action-button">
-            Ouvrir les messages 💌
-        </button>
-    </main>
+        const noBtnOffsetLeft = noBtnEl.offsetLeft;
+        const noBtnOffsetWidth = noBtnEl.offsetWidth;
 
-    <script>
-        const messages = {
-            sad: {
-                title: "Quand tu te sens triste 😔",
-                text: "Meli, je vois dans tes yeux que tu traverses des moments de tristesse, et ça me déchire le cœur. 💔 Je voudrais être là pour sécher tes larmes, t’offrir tout le réconfort du monde, mais je veux que tu saches que tu n’as pas à traverser ça seule. Je suis là, toujours, prêt à t’écouter, à te comprendre, et surtout à te montrer combien je tiens à toi. Ta tristesse me touche, mais elle ne te définit pas. Tu es forte et tu brilleras à nouveau, je le sais. 🙏 Et en attendant, je serai là pour te porter, pour te rappeler que tu es aimée. ❤️"
-            },
-            upset: {
-                title: "Quand tu es contrariée 😟",
-                text: "Meli, quand tu es en colère ou contrariée, je ressens tout ce poids sur toi, et ça me fait mal de te voir ainsi. Mais sache que je suis là pour t’écouter, pour comprendre ce que tu ressens. Ta colère est légitime, et tu as le droit d’être en colère. Mais je veux aussi te dire que je suis prêt à tout pour réparer les choses. Si j’ai fait quelque chose pour te déranger, je suis sincèrement désolé. 🙏 Rien n’est plus important pour moi que ton bonheur et ta sérénité. Ensemble, on peut surmonter n’importe quel obstacle. Tu n’es pas seule dans ce sentiment, je suis là, toujours. ❤️"
-            },
-            happy: {
-                title: "Quand tu es heureuse 😊",
-                text: "Meli, ta joie est ma lumière, chaque sourire que tu m’offres est comme un rayon de soleil qui illumine ma vie. ✨ Quand je te vois heureuse, mon cœur se remplit de bonheur. J’ai l’impression que tout est possible quand tu es dans cette énergie, cette beauté rayonnante. Tu rends mon monde tellement meilleur, et je te promets que je ferai tout pour te voir sourire chaque jour. Ta joie est la plus belle chose au monde, et tu mérites chaque instant de bonheur. 💖"
-            },
-            content: {
-                title: "Quand tu te sens sereine 😌",
-                text: "Meli, quand tu es paisible et sereine, c’est là que je trouve la vraie beauté de notre vie. Ton calme m’apaise, ton regard tranquille me donne l’impression que tout va bien. Dans ces moments-là, je me sens complet. 🥰 Tu es mon havre de paix, mon refuge après chaque tempête. Voir ton cœur en paix, c’est tout ce que je veux. Je serai là pour préserver cette tranquillité, pour te soutenir à chaque étape de ton chemin. 💖"
-            },
-            confused: {
-                title: "Quand tu te sens perdue 🤔",
-                text: "Meli, je sais que parfois, la confusion envahit ton esprit et que tu ne sais pas quelle direction prendre. Mais tu n’as pas à tout comprendre d’un coup. Je serai là pour te guider, pour t’accompagner dans ces moments de doute. Je crois en toi, je crois en ta capacité à trouver des réponses. Même si tu ne vois pas encore la lumière au bout du tunnel, sache que je suis là pour t’aider à éclairer ton chemin. 🤝 Ensemble, on trouvera toujours la voie. ❤️"
-            },
-            grateful: {
-                title: "Quand tu es reconnaissante 🥰",
-                text: "Meli, je me sens tellement honoré de recevoir ton amour, ta gratitude. Chaque mot que tu prononces, chaque geste que tu fais, me rappelle combien je suis chanceux de t’avoir dans ma vie. 🙏 Ton amour est ce qui me donne la force de me lever chaque jour. Je suis reconnaissant de chaque moment passé à tes côtés, de chaque sourire que tu m’offres. Tu es la personne que j’ai toujours cherchée, celle qui complète mon âme. 💖"
-            },
-            overwhelmed: {
-                title: "Quand tu es dépassée 😥",
-                text: "Meli, je vois que tout est trop pour toi en ce moment. Tu es fatiguée, épuisée par les responsabilités et les attentes. Mais je veux te dire une chose : tu n’as pas à tout porter seule. Je serai toujours là pour alléger ta charge, pour te soutenir quand tu as l’impression que tout s’effondre. Laisse-moi prendre soin de toi. 🤗 Si tu as besoin de respirer, je suis là pour te donner cet espace. Je suis là pour toi, à chaque étape, prêt à tout pour te rendre la vie plus facile. ❤️"
-            },
-            inlove: {
-                title: "Quand tu es heureuse avec moi 🥰",
-                text: "Meli, chaque jour passé avec toi est une bénédiction, mais quand tu es heureuse dans notre relation, mon cœur se gonfle de fierté. De savoir que tu es épanouie, que notre amour te comble, c’est tout ce dont je rêvais. ✨ Tu es celle avec qui je veux tout partager, avec qui je veux bâtir un futur plein de rires, de tendresse et de complicité. Chaque moment passé avec toi est une promesse de bonheur, et je ferai tout pour que tu sois heureuse à mes côtés. 💖"
-            },
-            loved: {
-                title: "Quand tu te sens aimée ❤️",
-                text: "Meli, quand tu ressens mon amour, sache que tu ressens l’essence même de mon cœur. Chaque geste, chaque mot que je t’adresse, vient du plus profond de mon âme. Je te porte en moi, chaque instant, chaque seconde, et je ne cesserai jamais de t’aimer. ✨ Tu es la personne avec qui je veux tout vivre, avec qui je veux bâtir une vie pleine de bonheur et d’amour. Je t’aime plus que tu ne peux l’imaginer, et je continuerai à te montrer chaque jour combien tu comptes pour moi. 💖"
-            },
-            angry: {
-                title: "Quand tu es en colère contre moi 😔",
-                text: "Meli, je sais que parfois je fais des erreurs, et si quelque chose que j’ai fait ou dit t’a mise en colère, je suis profondément désolé. 🙏 Mon intention n’a jamais été de te blesser, mais je comprends que parfois je peux te faire ressentir ça. Ce que je veux, c’est que tu sois heureuse, et je ferai tout pour réparer ce qui a été brisé. Je t’aime profondément et je suis prêt à tout pour regagner ta confiance, pour faire en sorte que tu te sentes écoutée et respectée. Je suis là, toujours, prêt à me battre pour toi et pour notre amour. ❤️"
-            }
-        };
+        if (isYesBtnOnLeft) {
+            newLeft = (noBtnOffsetLeft + noBtnOffsetWidth) + Math.random() * (containerWidth - (noBtnOffsetLeft + noBtnOffsetWidth) - buttonWidth);
+        } else {
+            newLeft = Math.random() * (noBtnOffsetLeft - buttonWidth);
+        }
 
-        const initialModal = document.getElementById('initial-modal');
-        const initialModalClose = document.getElementById('initial-modal-close');
-        const messagesModal = document.getElementById('messages-modal');
-        const messagesModalClose = document.getElementById('messages-modal-close');
-        const openMessagesBtn = document.getElementById('open-messages-btn');
-        const modalBody = document.getElementById('modal-body');
+        newTop = Math.random() * (container.offsetHeight - buttonHeight);
         
-        let isAudioStarted = false;
+        attempts++;
+    } while (attempts < 50); 
 
-        // --- Audio Setup with Tone.js ---
-        const clickSynth = new Tone.Synth({
-            oscillator: { type: 'triangle' },
-            envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.4 }
-        }).toDestination();
-        clickSynth.volume.value = -12;
+    isYesBtnOnLeft = !isYesBtnOnLeft; 
 
-        const hoverSynth = new Tone.MembraneSynth({
-            pitchDecay: 0.01,
-            octaves: 2,
-            envelope: { attack: 0.001, decay: 0.1, sustain: 0 }
-        }).toDestination();
-        hoverSynth.volume.value = -18;
+    yesBtn.style.top = `${newTop}px`;
+    yesBtn.style.left = `${newLeft}px`;
+  });
 
-        const startAudioContext = async () => {
-            if (isAudioStarted) return;
-            try {
-                await Tone.start();
-                isAudioStarted = true;
-            } catch (e) {
-                console.error("Impossible de démarrer le contexte audio", e);
-            }
-        };
+  function closeModal(modal) { modal.classList.remove('show'); }
+  closeGameModalBtn.addEventListener('click', () => closeModal(gameModal));
+  closeWinModalBtn.addEventListener('click', () => closeModal(winModal));
+  closeSpecialMessageModalBtn.addEventListener('click', () => closeModal(specialMessageModal));
+  
+  gameModal.addEventListener('click', (e) => { if (e.target === gameModal) closeModal(gameModal); });
+  winModal.addEventListener('click', (e) => { if (e.target === winModal) closeModal(winModal); });
+  specialMessageModal.addEventListener('click', (e) => { if (e.target === specialMessageModal) closeModal(specialMessageModal); });
 
-        const playSound = (synth, note, duration) => {
-            if (isAudioStarted) {
-                synth.triggerAttackRelease(note, duration);
-            }
-        };
+  // Start the smooth animation loop
+  animate();
 
-        const showInitialModal = () => initialModal.classList.add('visible');
-        const hideInitialModal = () => {
-            playSound(clickSynth, "A4", "8n");
-            initialModal.classList.remove('visible');
-            startAudioContext(); 
-        };
-        initialModalClose.addEventListener('click', hideInitialModal);
-        
-        const showMessagesModal = () => messagesModal.classList.add('visible');
-        const hideMessagesModal = () => {
-            playSound(clickSynth, "A4", "8n");
-            messagesModal.classList.remove('visible');
-        };
-        messagesModalClose.addEventListener('click', hideMessagesModal);
+</script>
 
-        const showMessagesList = () => {
-            playSound(clickSynth, "C5", "8n");
-            modalBody.innerHTML = '';
-            const listTitle = document.createElement('h2');
-            listTitle.className = 'font-dancing text-glow text-3xl mb-4 text-center';
-            listTitle.textContent = 'Pour chaque moment... 💌';
-            modalBody.appendChild(listTitle);
-
-            Object.keys(messages).forEach(mood => {
-                const button = document.createElement('button');
-                button.className = 'message-title-btn';
-                button.textContent = messages[mood].title;
-                button.onmouseover = () => playSound(hoverSynth, "C2", "32n");
-                button.onclick = () => showMessageText(mood);
-                modalBody.appendChild(button);
-            });
-            showMessagesModal();
-        };
-
-        const showMessageText = (mood) => {
-            playSound(clickSynth, "E5", "8n");
-            const message = messages[mood];
-            modalBody.innerHTML = `
-                <button id="back-to-list-btn" class="message-title-btn mb-4">
-                    <i class="fas fa-arrow-left mr-2"></i> Retour à la liste
-                </button>
-                <h2 class="font-dancing text-glow text-3xl mb-4 text-center">${message.title}</h2>
-                <p class="text-lg leading-relaxed">${message.text}</p>
-            `;
-            const backBtn = document.getElementById('back-to-list-btn');
-            backBtn.onmouseover = () => playSound(hoverSynth, "C2", "32n");
-            backBtn.onclick = showMessagesList;
-        };
-
-        openMessagesBtn.addEventListener('click', showMessagesList);
-        
-        window.addEventListener('load', () => {
-            setTimeout(showInitialModal, 500);
-        });
-    </script>
 </body>
 </html>
-
