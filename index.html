@@ -4,20 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chasing Images | Interactive Experience</title>
+    
+    <!-- تحميل Tailwind CSS بشكل آمن -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    
+    <!-- تحميل أيقونات Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Premium Fonts: Cinzel for elegance, Crimson Pro for readability -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
 
     <style>
+        /* الأساسيات */
         :root {
             --bg-base: #fdfcf8;
             --text-primary: #1c1c1c;
             --text-secondary: #5a5a5a;
-            --accent: #9a2b2b; /* Deep Burgundy */
-            --selection: #e3dcd2;
+            --accent: #9a2b2b;
             --line-color: #e5e5e5;
         }
 
@@ -26,7 +31,6 @@
             --text-primary: #e6e6e6;
             --text-secondary: #888888;
             --accent: #ff5c5c;
-            --selection: #333333;
             --line-color: #2a2a2a;
         }
 
@@ -34,31 +38,45 @@
             background-color: var(--bg-base);
             color: var(--text-primary);
             font-family: 'Crimson Pro', serif;
-            transition: background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1), color 0.8s;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.8s, color 0.8s;
+            overflow: hidden; /* لمنع السكرول أثناء التحميل */
+            margin: 0;
+            opacity: 1 !important; /* ضمان الظهور */
         }
 
-        /* 1. PAPER TEXTURE OVERLAY */
+        /* شاشة التحميل */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-base);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--line-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* تأثير الورق */
         .texture-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
             opacity: 0.04;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
             mix-blend-mode: multiply;
         }
-        [data-theme="dark"] .texture-overlay {
-            opacity: 0.07;
-            mix-blend-mode: overlay;
-        }
+        [data-theme="dark"] .texture-overlay { mix-blend-mode: overlay; opacity: 0.07; }
 
-        /* Typography */
+        /* التنسيقات */
         h1, h2, h3, .font-display { font-family: 'Cormorant Garamond', serif; }
         .font-ui { font-family: 'Inter', sans-serif; }
         .font-cinzel { font-family: 'Cinzel', serif; }
@@ -67,10 +85,8 @@
             margin-bottom: 1.5em;
             line-height: 1.85;
             font-size: 1.25rem;
-            transition: opacity 0.5s ease; /* For Focus Mode */
         }
 
-        /* Artistic Elements */
         .drop-cap::first-letter {
             float: left;
             font-family: 'Cinzel', serif;
@@ -88,93 +104,66 @@
             border-left: 1px solid transparent;
             transition: border-color 0.3s;
         }
-        .poetic-line:hover {
-            border-left-color: var(--accent);
-        }
+        .poetic-line:hover { border-left-color: var(--accent); }
 
-        /* Cover Art (CSS Only) */
+        /* تأثيرات الحركة */
+        .fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* وضع التركيز */
+        body.focus-mode .prose p { opacity: 0.25; filter: blur(0.5px); transition: 0.4s; }
+        body.focus-mode .prose p.active-focus { opacity: 1; filter: blur(0); transform: scale(1.01); }
+
+        /* تخصيص السكرول */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); opacity: 0.2; border-radius: 10px; }
+        
+        /* الغلاف الفني */
         .abstract-blur {
             position: absolute;
-            width: 300px;
-            height: 300px;
+            width: 300px; height: 300px;
             background: var(--accent);
             border-radius: 50%;
             filter: blur(80px);
             opacity: 0.15;
             z-index: 0;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            transition: opacity 2s ease;
-        }
-        
-        /* Focus Mode Classes */
-        body.focus-mode .prose p {
-            opacity: 0.25; /* Dim everything by default */
-            filter: blur(0.5px);
-            transition: opacity 0.4s ease, filter 0.4s ease;
-        }
-        body.focus-mode .prose p.active-focus {
-            opacity: 1;
-            filter: blur(0);
-            transform: scale(1.01); /* Subtle pop */
-        }
-
-        /* Animations */
-        .fade-up {
-            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--text-secondary); opacity: 0.2; border-radius: 2px; }
-
-        /* Selection Color */
-        ::selection {
-            background: var(--accent);
-            color: white;
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen">
 
-    <!-- Paper Texture Overlay -->
+    <!-- شاشة التحميل -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- طبقة الملمس -->
     <div class="texture-overlay"></div>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-80 bg-[var(--bg-base)] border-r border-[var(--line-color)] transform -translate-x-full md:translate-x-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-2xl md:shadow-none">
+    <!-- القائمة الجانبية -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-80 bg-[var(--bg-base)] border-r border-[var(--line-color)] transform -translate-x-full md:translate-x-0 transition-transform duration-500 flex flex-col shadow-2xl md:shadow-none">
         <div class="p-8 border-b border-[var(--line-color)]">
             <h1 class="font-cinzel font-bold text-xl tracking-wider text-[var(--accent)]">The Reflection</h1>
             <p class="font-ui text-[10px] uppercase tracking-[0.2em] mt-2 text-[var(--text-secondary)]">Interactive eBook</p>
         </div>
         
-        <nav id="toc" class="flex-1 overflow-y-auto p-6 space-y-4 opacity-0 animate-[fadeIn_0.5s_0.3s_forwards]">
-            <!-- Generated via JS -->
+        <nav id="toc" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- سيتم ملؤها بالجافاسكريبت -->
         </nav>
 
         <div class="p-6 border-t border-[var(--line-color)] bg-[var(--bg-base)]">
-            <div class="flex items-center justify-between mb-4">
-                <span class="font-ui text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Experience</span>
-            </div>
             <div class="flex gap-4 items-center justify-between">
-                <button onclick="toggleTheme()" class="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors" title="Dark Mode">
-                    <i data-lucide="moon" class="w-5 h-5"></i>
-                </button>
-                
+                <button onclick="toggleTheme()" class="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"><i data-lucide="moon" class="w-5 h-5"></i></button>
                 <div class="h-4 w-[1px] bg-[var(--line-color)]"></div>
-
-                <button onclick="toggleFocusMode()" id="focusBtn" class="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors flex items-center gap-2 group" title="Focus Mode">
-                    <i data-lucide="eye" class="w-5 h-5 group-[.active]:text-[var(--accent)]"></i>
-                </button>
-
+                <button onclick="toggleFocusMode()" id="focusBtn" class="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors group"><i data-lucide="eye" class="w-5 h-5"></i></button>
                 <div class="h-4 w-[1px] bg-[var(--line-color)]"></div>
-
                 <div class="flex items-center gap-2">
                     <button onclick="adjustSize(-1)" class="text-[var(--text-secondary)] hover:text-[var(--accent)] text-xs">A-</button>
                     <button onclick="adjustSize(1)" class="text-[var(--text-secondary)] hover:text-[var(--accent)] text-sm font-bold">A+</button>
@@ -183,29 +172,26 @@
         </div>
     </aside>
 
-    <!-- Overlay Mobile -->
+    <!-- تراكب للجوال -->
     <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden md:hidden opacity-0 transition-opacity duration-300"></div>
 
-    <!-- Main Content -->
+    <!-- المحتوى الرئيسي -->
     <main class="flex-1 md:ml-80 h-full flex flex-col relative bg-[var(--bg-base)] transition-colors duration-700">
         
-        <!-- Mobile Header -->
-        <header class="md:hidden flex justify-between items-center p-5 border-b border-[var(--line-color)] z-30 bg-[var(--bg-base)]/90 backdrop-blur">
+        <!-- هيدر الجوال -->
+        <header class="md:hidden flex justify-between items-center p-5 border-b border-[var(--line-color)] z-30 bg-[var(--bg-base)]">
             <button onclick="toggleSidebar()"><i data-lucide="menu" class="text-[var(--text-primary)]"></i></button>
             <span class="font-cinzel text-sm font-bold text-[var(--accent)]">The Reflection</span>
             <div class="w-6"></div>
         </header>
 
-        <!-- Reading Canvas -->
+        <!-- منطقة القراءة -->
         <div id="readingCanvas" class="flex-1 overflow-y-auto relative scroll-smooth">
-            
             <div class="max-w-3xl mx-auto px-6 py-16 md:py-24 min-h-screen flex flex-col relative z-10">
-                <div id="content" class="fade-up">
-                    <!-- Content goes here -->
-                </div>
+                <div id="content"></div>
             </div>
 
-            <!-- Bottom Navigation -->
+            <!-- أزرار التنقل السفلية -->
             <div class="max-w-3xl mx-auto px-6 pb-12 flex justify-between items-center opacity-60 hover:opacity-100 transition-opacity">
                 <button onclick="nav(-1)" id="prevBtn" class="font-ui text-xs uppercase tracking-widest flex items-center gap-2 hover:text-[var(--accent)] disabled:opacity-0 transition-all">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Prev
@@ -216,17 +202,15 @@
                 </button>
             </div>
         </div>
-
     </main>
 
     <script>
-        // --- Data ---
+        // البيانات
         const bookData = [
             {
                 type: 'cover',
                 title: "Chasing Images",
                 subtitle: "That Aren’t Ours",
-                meta: "A meditation on beauty, identity, and the quiet loss of meaning.",
                 content: ""
             },
             {
@@ -277,7 +261,6 @@
                     <p>When researchers looked deeper, one phrase kept appearing again and again:</p>
                     <blockquote class="text-2xl font-cinzel text-center my-10 text-[var(--text-primary)]">“There’s always something better.”</blockquote>
                     <p>This sentence sits at the core of the problem. No matter what you change, no matter how much you improve, there is always another upgrade waiting.</p>
-                    <p>This is why cosmetic procedures rarely stop at one. The second leads to the third. The third to the fourth. And suddenly, “improvement” has no finish line.</p>
                 `
             },
              {
@@ -386,20 +369,35 @@
             }
         ];
 
-        // --- Logic ---
+        // المتغيرات
         let currentIndex = 0;
         let fontSize = 1.25;
         let isFocusMode = false;
 
+        // دالة البدء
         function init() {
-            lucide.createIcons();
             renderTOC();
             loadContent(0);
             
-            // Focus Mode Scroll Listener
+            // إخفاء شاشة التحميل بعد ثانية واحدة
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                    document.body.style.overflow = 'auto'; // إعادة تفعيل السكرول
+                }
+            }, 1000);
+            
+            // تهيئة الأيقونات بأمان
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
             document.getElementById('readingCanvas').addEventListener('scroll', handleScrollFocus);
         }
 
+        // رسم الفهرس
         function renderTOC() {
             const nav = document.getElementById('toc');
             nav.innerHTML = bookData.map((item, i) => `
@@ -410,62 +408,49 @@
             `).join('');
         }
 
+        // تحميل المحتوى
         function loadContent(idx) {
             currentIndex = idx;
             const container = document.getElementById('content');
             const data = bookData[idx];
 
-            // Animation out
-            container.style.opacity = '0';
-            container.style.transform = 'translateY(10px)';
+            container.classList.remove('fade-up');
+            void container.offsetWidth; // Reset animation
 
-            setTimeout(() => {
-                // Scroll top
-                document.getElementById('readingCanvas').scrollTop = 0;
-
-                if (data.type === 'cover') {
-                    container.innerHTML = `
-                        <div class="flex flex-col items-center justify-center min-h-[60vh] text-center relative">
-                            <div class="abstract-blur"></div>
-                            <div class="relative z-10">
-                                <h2 class="font-cinzel font-bold text-sm tracking-[0.3em] text-[var(--accent)] mb-6 uppercase">A Short Book</h2>
-                                <h1 class="font-display text-6xl md:text-8xl font-medium leading-[0.9] mb-8 text-[var(--text-primary)]">Chasing<br><span class="italic font-light">Images</span></h1>
-                                <p class="font-ui text-sm uppercase tracking-widest max-w-sm mx-auto text-[var(--text-secondary)] leading-relaxed">${data.subtitle}</p>
-                                <div class="w-[1px] h-24 bg-[var(--text-secondary)] mx-auto mt-12 opacity-30"></div>
-                                <button onclick="nav(1)" class="mt-8 px-8 py-3 border border-[var(--text-primary)] text-[var(--text-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] transition-all font-ui text-xs uppercase tracking-widest">Begin Reading</button>
-                            </div>
+            if (data.type === 'cover') {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center min-h-[60vh] text-center relative">
+                        <div class="abstract-blur"></div>
+                        <div class="relative z-10">
+                            <h2 class="font-cinzel font-bold text-sm tracking-[0.3em] text-[var(--accent)] mb-6 uppercase">A Short Book</h2>
+                            <h1 class="font-display text-6xl md:text-8xl font-medium leading-[0.9] mb-8 text-[var(--text-primary)]">Chasing<br><span class="italic font-light">Images</span></h1>
+                            <p class="font-ui text-sm uppercase tracking-widest max-w-sm mx-auto text-[var(--text-secondary)] leading-relaxed">${data.subtitle || ''}</p>
+                            <div class="w-[1px] h-24 bg-[var(--text-secondary)] mx-auto mt-12 opacity-30"></div>
+                            <button onclick="nav(1)" class="mt-8 px-8 py-3 border border-[var(--text-primary)] text-[var(--text-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] transition-all font-ui text-xs uppercase tracking-widest">Begin Reading</button>
                         </div>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <div class="chapter-header mb-16 text-center">
-                            <span class="font-cinzel text-xs text-[var(--accent)] tracking-[0.2em] uppercase block mb-4">${data.chapterLabel}</span>
-                            <h2 class="font-display text-5xl md:text-6xl text-[var(--text-primary)] mb-6">${data.title}</h2>
-                            <div class="w-12 h-[2px] bg-[var(--accent)] mx-auto opacity-60"></div>
-                        </div>
-                        <div class="prose max-w-none text-[var(--text-primary)]" style="font-size: ${fontSize}rem">
-                            ${data.content}
-                        </div>
-                    `;
-                }
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="chapter-header mb-16 text-center">
+                        <span class="font-cinzel text-xs text-[var(--accent)] tracking-[0.2em] uppercase block mb-4">${data.chapterLabel}</span>
+                        <h2 class="font-display text-5xl md:text-6xl text-[var(--text-primary)] mb-6">${data.title}</h2>
+                        <div class="w-12 h-[2px] bg-[var(--accent)] mx-auto opacity-60"></div>
+                    </div>
+                    <div class="prose max-w-none text-[var(--text-primary)]" style="font-size: ${fontSize}rem">
+                        ${data.content}
+                    </div>
+                `;
+            }
 
-                // Animation in
-                container.style.opacity = '1';
-                container.style.transform = 'translateY(0)';
-                
-                renderTOC();
-                updateNavButtons();
-                
-                // Re-init icons for new content
-                lucide.createIcons();
-                
-                // Reset focus mode if active
-                if(isFocusMode) handleScrollFocus();
-
-                // Close sidebar on mobile
-                if (window.innerWidth < 768) closeSidebar();
-
-            }, 300);
+            container.classList.add('fade-up');
+            
+            document.getElementById('readingCanvas').scrollTop = 0;
+            renderTOC();
+            updateNavButtons();
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            if(window.innerWidth < 768) closeSidebar();
         }
 
         function nav(dir) {
@@ -474,11 +459,12 @@
         }
 
         function updateNavButtons() {
-            document.getElementById('prevBtn').disabled = currentIndex === 0;
-            document.getElementById('nextBtn').disabled = currentIndex === bookData.length - 1;
+            const prev = document.getElementById('prevBtn');
+            const next = document.getElementById('nextBtn');
+            if(prev) prev.disabled = currentIndex === 0;
+            if(next) next.disabled = currentIndex === bookData.length - 1;
         }
 
-        // --- Sidebar & Mobile ---
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('overlay');
@@ -498,7 +484,6 @@
             setTimeout(() => ov.classList.add('hidden'), 300);
         }
 
-        // --- Settings ---
         function toggleTheme() {
             const body = document.body;
             body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
@@ -507,34 +492,26 @@
         function adjustSize(dir) {
             if (dir === 1 && fontSize < 1.8) fontSize += 0.1;
             if (dir === -1 && fontSize > 1) fontSize -= 0.1;
-            loadContent(currentIndex); // Reload to apply size cleanly
+            loadContent(currentIndex);
         }
 
-        // --- Focus Mode Logic ---
         function toggleFocusMode() {
             isFocusMode = !isFocusMode;
             document.body.classList.toggle('focus-mode');
             const btn = document.getElementById('focusBtn');
-            
-            if (isFocusMode) {
-                btn.querySelector('i').classList.add('text-[var(--accent)]');
-                handleScrollFocus(); // Initial trigger
-            } else {
-                btn.querySelector('i').classList.remove('text-[var(--accent)]');
+            if(btn) {
+                if(isFocusMode) btn.classList.add('text-[var(--accent)]');
+                else btn.classList.remove('text-[var(--accent)]');
             }
         }
 
         function handleScrollFocus() {
             if (!isFocusMode) return;
-            
             const paragraphs = document.querySelectorAll('.prose p');
-            const triggerPoint = window.innerHeight / 2; // Center of screen
-
+            const triggerPoint = window.innerHeight / 2;
             paragraphs.forEach(p => {
                 const rect = p.getBoundingClientRect();
-                // If the paragraph center is near the screen center
                 const pCenter = rect.top + (rect.height / 2);
-                
                 if (pCenter > triggerPoint - 150 && pCenter < triggerPoint + 150) {
                     p.classList.add('active-focus');
                 } else {
@@ -543,7 +520,9 @@
             });
         }
 
-        window.onload = init;
+        // تشغيل الكود عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', init);
+
     </script>
 </body>
 </html>
